@@ -3,12 +3,12 @@ package main
 import "testing"
 
 var testData = []struct {
-	testName   string
-	product    []Product
-	qty        []int
-	onCartOffer      bool
-	offer	Offer
-	finalPrice int
+	testName    string
+	product     []Product
+	qty         []int
+	onCartOffer bool
+	offer       CartOffer
+	finalPrice  int
 }{
 	{
 		testName: "AddProductNoOffer",
@@ -84,9 +84,9 @@ var testData = []struct {
 			4,
 		},
 		onCartOffer: true,
-		offer: CartOffer{
+		offer: CartDiscount{
 			minAmount: 500,
-			discount: 20,
+			discount:  20,
 		},
 		finalPrice: 440,
 	},

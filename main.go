@@ -1,36 +1,18 @@
 package main
 
-import "math"
-
-type Offer interface{}
-
-type BuyXGetYOffer struct {
-	toBuy   int
-	getFree int
-}
-
-type SecondItemDiscountOffer struct {
-	discount int
-}
-
-type CartOffer struct{
-	minAmount int
-	discount int
-}
-
 type Product struct {
 	name      string
 	unitPrice int
 	onOffer   bool
-	offer     Offer
+	offer     ProductOffer
 }
 
 // Cart : An item in map represents a product with its quantity
 type Cart struct {
 	items     map[Product]int
 	cartPrice int
-	onOffer bool
-	offer Offer
+	onOffer   bool
+	offer     CartOffer
 }
 
 func main() {
@@ -45,34 +27,15 @@ func (c *Cart) addProduct(product Product, qty int) {
 func (c *Cart) updateCartPrice() {
 	var totalPrice int
 	for prod, qty := range c.items {
+		var discount int
 		if prod.onOffer {
-			switch prod.offer.(type) {
-			case BuyXGetYOffer:
-				qty = prod.getChargeableQty(qty)
-				totalPrice += prod.unitPrice * qty
-			case SecondItemDiscountOffer:
-				fullPriceQty := qty / 2
-				discountedQty := qty - fullPriceQty
-				totalPrice += int(float64(discountedQty) * float64(prod.unitPrice) * float64(prod.offer.(SecondItemDiscountOffer).discount) / 100)
-				totalPrice += fullPriceQty * prod.unitPrice
-			}
-
-		} else {
-			totalPrice += prod.unitPrice * qty
+			discount = prod.offer.Discount(prod, qty)
 		}
+		totalPrice += (prod.unitPrice * qty) - discount
 	}
 	c.cartPrice = totalPrice
 
-	if c.onOffer{
-		offer := c.offer.(CartOffer)
-		if c.cartPrice >= offer.minAmount{
-			c.cartPrice = int(float64(c.cartPrice) - float64(c.cartPrice) * (float64(offer.discount) / 100))
-		}
+	if c.onOffer {
+		c.cartPrice = c.cartPrice - c.offer.Discount(*c)
 	}
-
-}
-
-func (p Product) getChargeableQty(qty int) int {
-	chargeableQty := math.Ceil(float64(p.offer.(BuyXGetYOffer).toBuy*qty) / float64(p.offer.(BuyXGetYOffer).toBuy+p.offer.(BuyXGetYOffer).getFree))
-	return int(chargeableQty)
 }
